@@ -1,0 +1,5 @@
+1. Tạo thư mục mới và tạo tệp mới tên `index.htm`.
+2. Mở `index.htm` bằng VS Code.
+3. Thêm cấu trúc HTML cơ bản: <!DOCTYPE html>, <html>, <head>, <title> và <body>.
+4. Lưu thay đổi và mở `index.htm` trong trình duyệt để kiểm tra dùng extension Go Live .
+5. Thêm ảnh vào cùng 1 folder để hiển thị được

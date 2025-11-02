@@ -1,0 +1,5 @@
+Mã nguồn gồm ba mảng dữ liệu chính: sinhvien, hocphan, và ketqua, lưu thông tin sinh viên, học phần và kết quả học tập. 
+Khi người dùng nhập mã sinh viên và nhấn “Tra cứu”, chương trình gọi ba hàm bất đồng bộ getStudentInfo, getStudentResults, và getCourseDetails để truy xuất dữ liệu. 
+Mỗi hàm sử dụng Promise và setTimeout mô phỏng thời gian tải dữ liệu, đồng thời lưu kết quả vào localStorage để tăng tốc các lần tra cứu sau. 
+Dữ liệu sau khi lấy được sẽ hiển thị trong bảng HTML thông qua hàm displayResults. 
+Quy trình hoạt động tuần tự: nhập mã → tải thông tin → lấy kết quả → hiển thị.

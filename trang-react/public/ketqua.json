@@ -1,0 +1,128 @@
+[
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "SSH1141",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "PE2251",
+    "score": 7.6,
+    "scoreInAplat": "B"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT4785",
+    "score": 8.0,
+    "scoreInAplat": "B+"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT4593",
+    "score": 6.0,
+    "scoreInAplat": "D"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT4172",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT3180",
+    "score": 7.5,
+    "scoreInAplat": "B"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT3170",
+    "score": 7.5,
+    "scoreInAplat": "B"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT3150",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "IT2030",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "FL1132",
+    "score": 10,
+    "scoreInAplat": "R"
+  },
+  {
+    "sid": "20225277",
+    "term": "20241",
+    "cid": "FL1131",
+    "score": 10,
+    "scoreInAplat": "R"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT4991",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT4651",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT4210",
+    "score": 9.5,
+    "scoreInAplat": "A+"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT4060",
+    "score": 6.5,
+    "scoreInAplat": "C+"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT4015",
+    "score": 7.0,
+    "scoreInAplat": "B"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT3931",
+    "score": 8.5,
+    "scoreInAplat": "A"
+  },
+  {
+    "sid": "20225277",
+    "term": "20242",
+    "cid": "IT3120",
+    "score": 8.4,
+    "scoreInAplat": "B+"
+  }
+]

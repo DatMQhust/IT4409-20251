@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tra cứu kết quả học tập</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            background: #f8f9fa;
+        }
+
+        h1 {
+            color: #004aad;
+        }
+        input {
+            padding: 8px;
+            font-size: 16px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #004aad;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #004aad;
+            color: white;
+        }
+
+        #loading {
+            color: gray;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Trang tra cứu kết quả học tập</h1>
+
+    <input id="sidInput" type="text" placeholder="Nhập mã sinh viên...">
+    <button id="btnSearch">Tra cứu</button>
+    <p id="loading"></p>
+
+    <div id="result"></div>
+
+    <script>
+        const sinhvien = [
+            { sid: "20225277", name: "Mai Quốc Đạt", dob: "2004-09-12" }
+        ];
+        const hocphan = [
+            { cid: "SSH1141", name: "Lịch sử Đảng cộng sản Việt Nam", credits: 2 },
+            { cid: "PE2251", name: "Taekwondo 1", credits: 0 },
+            { cid: "IT4785", name: "Phát triển ứng dụng cho thiết bị di động", credits: 3 },
+            { cid: "IT4593", name: "Nhập môn kỹ thuật truyền thông", credits: 2 },
+            { cid: "IT4172", name: "Xử lý tín hiệu", credits: 2 },
+            { cid: "IT3180", name: "Nhập môn công nghệ phần mềm", credits: 3 },
+            { cid: "IT3170", name: "Thuật toán ứng dụng", credits: 2 },
+            { cid: "IT3150", name: "Project I", credits: 2 },
+            { cid: "IT2030", name: "Technical Writing and Presentation", credits: 3 },
+            { cid: "FL1132", name: "Tiếng Anh cơ sở 2", credits: 0 },
+            { cid: "FL1131", name: "Tiếng Anh cơ sở 1", credits: 0 },
+            { cid: "IT4991", name: "Thực tập kỹ thuật", credits: 2 },
+            { cid: "IT4651", name: "Thiết kế và triển khai mạng IP", credits: 3 },
+            { cid: "IT4210", name: "Hệ nhúng", credits: 3 },
+            { cid: "IT4060", name: "Lập trình mạng", credits: 2 },
+            { cid: "IT4015", name: "Nhập môn an toàn thông tin", credits: 3 },
+            { cid: "IT3931", name: "Project II", credits: 2 },
+            { cid: "IT3120", name: "Phân tích và thiết kế hệ thống", credits: 2 }
+        ];
+        const ketqua = [
+            { sid: "20225277", term: "20241", cid: "SSH1141", score: 8.5, scoreInAplat: "A"},
+            { sid: "20225277", term: "20241", cid: "PE2251", score: 7.6, scoreInAplat: "B" },
+            { sid: "20225277", term: "20241", cid: "IT4785", score: 8.0, scoreInAplat: "B+" },
+            { sid: "20225277", term: "20241", cid: "IT4593", score: 6.0, scoreInAplat: "D" },
+            { sid: "20225277", term: "20241", cid: "IT4172", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20241", cid: "IT3180", score: 7.5, scoreInAplat: "B" },
+            { sid: "20225277", term: "20241", cid: "IT3170", score: 7.5, scoreInAplat: "B" },
+            { sid: "20225277", term: "20241", cid: "IT3150", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20241", cid: "IT2030", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20241", cid: "FL1132", score: 10, scoreInAplat: "R" },
+            { sid: "20225277", term: "20241", cid: "FL1131", score: 10, scoreInAplat: "R" },
+            { sid: "20225277", term: "20242", cid: "IT4991", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20242", cid: "IT4651", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20242", cid: "IT4210", score: 9.5, scoreInAplat: "A+" },
+            { sid: "20225277", term: "20242", cid: "IT4060", score: 6.5, scoreInAplat: "C+" },
+            { sid: "20225277", term: "20242", cid: "IT4015", score: 7.0, scoreInAplat: "B" },
+            { sid: "20225277", term: "20242", cid: "IT3931", score: 8.5, scoreInAplat: "A" },
+            { sid: "20225277", term: "20242", cid: "IT3120", score: 8.4, scoreInAplat: "B+" }
+        ];
+
+        async function getStudentInfo(sid) {
+            const cacheKey = `student_${sid}`;
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const student = sinhvien.find(sv => sv.sid === sid);
+            if (!student) throw new Error('Không tìm thấy thông tin sinh viên');
+            
+            localStorage.setItem(cacheKey, JSON.stringify(student));
+            return student;
+        }
+
+        async function getStudentResults(sid) {
+            const cacheKey = `results_${sid}`;
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 800));
+            const results = ketqua.filter(kq => kq.sid === sid);
+            if (results.length === 0) throw new Error('Không tìm thấy kết quả học tập');
+            
+            localStorage.setItem(cacheKey, JSON.stringify(results));
+            return results;
+        }
+
+        async function getCourseDetails(cid) {
+            const cacheKey = `course_${cid}`;
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const course = hocphan.find(hp => hp.cid === cid);
+            if (!course) throw new Error(`Không tìm thấy thông tin học phần ${cid}`);
+            
+            localStorage.setItem(cacheKey, JSON.stringify(course));
+            return course;
+        }
+
+        function displayResults(student, results, courses) {
+            const resultEl = document.getElementById('result');
+            
+            let html = `
+                <h2>Thông tin sinh viên</h2>
+                <p>Họ tên: ${student.name}</p>
+                <p>MSSV: ${student.sid}</p>
+                <p>Ngày sinh: ${new Date(student.dob).toLocaleDateString('vi-VN')}</p>
+                <h3>Kết quả học tập</h3>
+            `;
+
+            html += '<table><tr><th>Mã học phần</th><th>Tên học phần</th><th>Số tín chỉ</th><th>Học kỳ</th><th>Điểm số</th><th>Điểm chữ quy đổi</th></tr>';
+            
+            results.forEach(result => {
+                const course = courses.find(c => c.cid === result.cid);
+                html += `
+                    <tr>
+                        <td>${course.cid}</td>
+                        <td>${course.name}</td>
+                        <td>${course.credits}</td>
+                        <td>${result.term}</td>
+                        <td>${result.score}</td>
+                        <td>${result.scoreInAplat}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            resultEl.innerHTML = html;
+        }
+
+        document.getElementById('btnSearch').addEventListener('click', async function() {
+            const sid = document.getElementById('sidInput').value.trim();
+            const loadingEl = document.getElementById('loading');
+            const resultEl = document.getElementById('result');
+            
+            if (!sid) {
+                alert('Vui lòng nhập mã sinh viên');
+                return;
+            }
+
+            loadingEl.textContent = 'Đang tải thông tin...';
+            resultEl.innerHTML = '';
+
+            try {
+                const [student, results] = await Promise.all([
+                    getStudentInfo(sid),
+                    getStudentResults(sid)
+                ]);
+
+                const coursePromises = [...new Set(results.map(r => r.cid))]
+                    .map(cid => getCourseDetails(cid));
+                const courses = await Promise.all(coursePromises);
+                displayResults(student, results, courses);
+
+            } catch (error) {
+                resultEl.innerHTML = `<p class="error">Lỗi: ${error.message}</p>`;
+            } finally {
+                loadingEl.textContent = '';
+            }
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .error {
+                color: red;
+                padding: 10px;
+                border: 1px solid red;
+                background: #fff5f5;
+                border-radius: 4px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

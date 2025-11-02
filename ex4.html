@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook' Register</title>
+</head>
+<body>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/500px-Facebook_Logo_%282019%29.png" alt="Facebook Logo" width="200">
+    <h2>Đăng Ký Tài Khoản Facebook</h2>
+    <form action="/submit" method="post">
+        <label for="fullname">Họ và Tên:</label>
+        <input type="text" id="fullname" name="fullname" required>
+        <br><br>
+        <label for="email">Email hoặc Số điện thoại:</label>
+        <input type="email" id="email" name="email" required>
+        <br><br>
+        <label for="password">Mật khẩu mới:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+        <label for="dob">Ngày sinh:</label>
+        <input type="date" id="dob" name="dob" required>
+        <br><br>
+        <label>Giới tính:</label>
+        <input type="radio" id="male" name="gender" value="male" required>
+        <label for="male">Nam</label>
+        <input type="radio" id="female" name="gender" value="female" required>
+        <label for="female">Nữ</label>
+    </form>
+</body>
+</html>
