@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng</title>
+    <script src='https://unpkg.com/react@18/umd/react.development.js'></script>
+    <script src='https://unpkg.com/react-dom@18/umd/react-dom.development.js'></script>
+    <script src='https://unpkg.com/@babel/standalone/babel.min.js'></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">
+    </script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f9f9f9;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-save {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background: #fff;
+            padding: 6px;
+            border-radius: 6px;
+            width: 300px;
+        }
+
+        .pagination-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .pagination-button {
+            padding: 6px 12px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: blue;
+            color: white;
+            cursor: pointer;
+        }
+
+        .pagination-button:disabled {
+            color: #aaa;
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            border-color: #ddd;
+        }
+
+        .pagination-limit select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function Pagination({ page, limit, totalItems, changePage, changeLimit }) {
+            const totalPages = Math.ceil(totalItems / limit);
+            const handleLimitChange = (e) => {
+                const newLimit = Number(e.target.value);
+                changeLimit(newLimit);
+                changePage(1);
+            };
+
+            const goToPrevious = () => {
+                if (page > 1) {
+                    changePage(page - 1);
+                }
+            };
+            const goToNext = () => {
+                if (page < totalPages) {
+                    changePage(page + 1);
+                }
+            };
+            return (
+                <div className="pagination-container">
+                    <div className="pagination-controls">
+                        <button
+                            className="pagination-button"
+                            onClick={goToPrevious}
+                            disabled={page === 1}
+                        >
+                            Trước
+                        </button>
+
+                        <span className="pagination-page-display">
+                            Trang {page} / {totalPages}
+                        </span>
+
+                        <button
+                            className="pagination-button"
+                            onClick={goToNext}
+                            disabled={page === totalPages}
+                        >
+                            Sau
+                        </button>
+                    </div>
+                    <div className="pagination-limit">
+                        <select value={limit} onChange={handleLimitChange}>
+                            <option value={1}>1/trang</option>
+                            <option value={2}>2/trang</option>
+                            <option value={5}>5/trang</option>
+                            <option value={15}>15/trang</option>
+                        </select>
+                    </div>
+                </div>
+            )
+        }
+        function SearchForm({ onChangeValue }) {
+            return (
+                <input
+                    type="text"
+                    placeholder="Tìm theo name, username"
+                    onChange={(e) => onChangeValue(e.target.value)}
+                />
+            );
+        }
+        function Edit({ user, onSave, onCancel }) {
+            const [editingUser, setEditingUser] = React.useState({ ...user, address: { ...user.address } });
+            const handleChange = (e) => {
+                const { id, value } = e.target;
+                if (["street", "suite", "city"].includes(id)) {
+                    setEditingUser(prevUser => ({
+                        ...prevUser,
+                        address: { ...prevUser.address, [id]: value }
+                    }));
+                } else {
+                    setEditingUser(prevUser => ({ ...prevUser, [id]: value }));
+                }
+            };
+
+            const handleSave = () => {
+                onSave(editingUser);
+            };
+
+            return (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Sửa người dùng</h3>
+                        <div className="form-group">
+                            <label htmlFor="name">Name *</label>
+                            <input type="text" id="name" value={editingUser.name} onChange={handleChange} />
+                        </div >
+                        <div className="form-group">
+                            <label htmlFor="username">UserName *</label>
+                            <input type="text" id="username" value={editingUser.username} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="email">Email *</label>
+                            <input type="email" id="email" value={editingUser.email} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="street">Street *</label>
+                            <input type="text" id="street" value={editingUser.address.street} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="suite">Suite *</label>
+                            <input type="text" id="suite" value={editingUser.address.suite} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="city">City *</label>
+                            <input type="text" id="city" value={editingUser.address.city} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="phone">Phone *</label>
+                            <input type="text" id="phone" value={editingUser.phone} onChange={handleChange} />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="website">Website *</label>
+                            <input type="text" id="website" value={editingUser.website} onChange={handleChange} />
+                        </div>
+
+                        <div className="modal-actions">
+                            <button className="btn-save" onClick={handleSave}>Lưu</button>
+                            <button className="btn-cancel" onClick={onCancel}>Hủy</button>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+        function ResultTable({ keyword, user, onAdded }) {
+            const [users, setUsers] = React.useState([]);
+            const [loading, setLoading] = React.useState(true); // Giữ lại loading state
+            const [editing, setEditing] = React.useState(null);
+            const [page, setPage] = React.useState(1);
+            const [limit, setLimit] = React.useState(15);
+            // Tải dữ liệu 1 lần khi component mount
+            React.useEffect(() => {
+                fetch("https://jsonplaceholder.typicode.com/users")
+                    .then(res => res.json())
+                    .then(data => { setUsers(data); setLoading(false); });
+            }, [])
+            const filteredUsers = users.filter(
+                (u) =>
+                    u.name.toLowerCase().includes(keyword.toLowerCase()) ||
+                    u.username.toLowerCase().includes(keyword.toLowerCase())
+            );
+            React.useEffect(() => {
+                if (user) {
+                    setUsers((prev) => [...prev, { ...user, id: prev.length + 1 }]);
+                    onAdded();
+                }
+            }, [user]);
+            const start = (page - 1) * limit;
+            const end = start + limit;
+            const paginateUser = filteredUsers.slice(start, end);
+            const editUser = (user) => {
+                setEditing({ ...user, address: { ...user.address } });
+            }
+            const saveUser = async (editedUser) => {
+                try {
+                    const response = await axios.put(`https://jsonplaceholder.typicode.com/users/${editedUser.id}`, editedUser);
+                    alert("Sửa người dùng thành cônng " + JSON.stringify(response.data));
+                    setUsers(prev => prev.map(u => (u.id === editedUser.id ? response.data : u)));
+                    setEditing(null);
+                } catch (error) {
+                    console.error("Ko update được:", error);
+                    alert("Lỗi update người dùng.");
+                }
+            };
+            const removeUser = async (id) => {
+                try {
+                    await axios.delete(`https://jsonplaceholder.typicode.com/users/${id}`);
+                    alert(`Người dùng có id ${id} xoá thành công.`);
+                    setUsers((prev) => prev.filter((u) => u.id !== id));
+                } catch (error) {
+                    console.error("Ko xoá được người dùng:", error);
+                    alert("Lỗi xoá người dùng.");
+                }
+            };
+            return (
+                <div>
+                    {editing && (
+                        <Edit
+                            user={editing}
+                            onSave={saveUser}
+                            onCancel={() => setEditing(null)}
+                        />
+                    )}
+                    <table>
+                        <tbody>
+                            {paginateUser.map((u) => (
+                                <tr key={u.id}>
+                                    <td>{u.id}</td>
+                                    <td>{u.name}</td>
+                                    <td>{u.username}</td>
+                                    <td>{u.email}</td>
+                                    <td>{u.address.city}</td>
+                                    <td>
+                                        <button className="btn-edit" onClick={() => editUser(u)}>Sửa</button>
+                                        <button className="btn-delete" onClick={() => removeUser(u.id)}>Xóa</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <Pagination page={page} limit={limit} totalItems={users.length} changePage={setPage} changeLimit={setLimit} />
+                </div>
+
+            );
+        }
+        function AddUser({ onAdd }) {
+            const [adding, setAdding] = React.useState(false);
+            const [user, setUser] = React.useState({
+                name: "", username: "", email: "",
+                address: { street: "", suite: "", city: "" },
+                phone: "", website: ""
+            });
+            const handleChange = (e) => {
+                const { id, value } = e.target;
+                if (["street", "suite", "city"].includes(id)) {
+                    setUser({ ...user, address: { ...user.address, [id]: value } });
+                } else {
+                    setUser({ ...user, [id]: value });
+                }
+            };
+            const handleAdd = async () => {
+                if (user.name === "" || user.username === "") {
+                    alert("Vui lòng nhập Name và Username!");
+                    return;
+                }
+                try {
+                    const response = await axios.post("https://jsonplaceholder.typicode.com/users", user);
+                    alert("Thêm nguoiwf dùng: " + JSON.stringify(response.data));
+                    onAdd(response.data);
+                    setUser({
+                        name: "", username: "", email: "", address: { street: "", suite: "", city: "" },
+                        phone: "", website: ""
+                    });
+                    setAdding(false);
+                } catch (error) {
+                    console.error("Lỗi thêm người dùng:", error);
+                    alert("Lỗi thêm người dùng.");
+                }
+            };
+            const handleCancel = () => {
+                setUser({
+                    name: "", username: "", email: "", address: {
+                        street: "",
+                        suite: "", city: ""
+                    }, phone: "", website: ""
+                });
+                setAdding(false);
+            }
+            return (
+                <div>
+                    <button className="btn-add" onClick={() => setAdding(true)}>Thêm Người Dùng Mới</button>
+                    {adding && (
+                        <div className="modal-overlay">
+                            <div className="modal-content">
+                                <h3>Thêm người dùng mới</h3>
+                                <div className="form-group">
+                                    <label htmlFor="name">Name *</label>
+                                    <input type="text" id="name" value={user.name} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="username">UserName *</label>
+                                    <input type="text" id="username" value={user.username} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="email">Email *</label>
+                                    <input type="email" id="email" value={user.email} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="street">Street *</label>
+                                    <input type="text" id="street" value={user.address.street} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="suite">Suite *</label>
+                                    <input type="text" id="suite" value={user.address.suite} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="city">City *</label>
+                                    <input type="text" id="city" value={user.address.city} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="phone">Phone *</label>
+                                    <input type="text" id="phone" value={user.phone} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="website">Website *</label>
+                                    <input type="text" id="website" value={user.website} onChange={handleChange} />
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button className="btn-save" onClick={handleAdd}>Thêm</button>
+                                    <button className="btn-cancel" onClick={handleCancel}>Hủy</button>
+                                </div>
+                            </div>
+                        </div>)}
+                </div>
+            );
+        }
+
+        function App() {
+            const [kw, setKeyword] = React.useState("");
+            const [newUser, setNewUser] = React.useState(null);
+            const [page, setPage] = React.useState(1);
+            const [limit, setLimit] = React.useState(10);
+            return (
+                <div>
+                    <SearchForm onChangeValue={setKeyword} />
+                    <AddUser onAdd={setNewUser} />
+                    <ResultTable keyword={kw} user={newUser} onAdded={() =>
+                        setNewUser(null)} />
+                </div>
+            );
+        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

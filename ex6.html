@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>React CRUD - Quản lý người dùng</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+    h1, h2 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #f9f9f9; }
+    input[type="text"], input[type="email"] { width: calc(100% - 16px); padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+    .btn-add { background-color: #28a745; color: white; }
+    .btn-edit { background-color: #ffc107; color: #333; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-save { background-color: #007bff; color: white; }
+    .btn-cancel { background-color: #6c757d; color: white; }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 999;
+    }
+    /* Modal Content */
+    .modal-content {
+      background: #fff; padding: 20px; border-radius: 6px;
+      width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .modal-content h3 { margin-top: 0; }
+    .modal-content .form-group { margin-bottom: 15px; }
+    .modal-content .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .modal-actions { text-align: right; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ===================================
+    // COMPONENT SEARCHFORM (Bước 3)
+    // ===================================
+    function SearchForm({ onChangeValue }) {
+      // [cite: 53, 54, 55, 56, 57, 58, 59, 60, 61]
+      return (
+        <input
+          type="text"
+          placeholder="Tìm theo name, username"
+          onChange={(e) => onChangeValue(e.target.value)}
+          style={{ width: '300px', padding: '8px' }}
+        />
+      );
+    }
+
+    // ===================================
+    // COMPONENT ADDUSER (Bước 5)
+    // ===================================
+    function AddUser({ onAdd }) {
+      // [cite: 113]
+      const [adding, setAdding] = useState(false); // [cite: 114]
+      const initialUserState = {
+        name: "", username: "", email: "",
+        address: { street: "", suite: "", city: "" },
+        phone: "", website: ""
+      };
+      const [user, setUser] = useState(initialUserState); // [cite: 115, 116, 117, 118, 119]
+
+      // [cite: 120, 121]
+      const handleChange = (e) => {
+        const { id, value } = e.target; // [cite: 123]
+        
+        // Xử lý state lồng nhau (Nested State) [cite: 108, 124]
+        if (["street", "suite", "city"].includes(id)) {
+          setUser(prevUser => ({
+            ...prevUser, // [cite: 122]
+            address: {
+              ...prevUser.address, // [cite: 126]
+              [id]: value 
+            }
+          })); // [cite: 125]
+        } else {
+          setUser(prevUser => ({
+            ...prevUser, // [cite: 128]
+            [id]: value
+          })); // [cite: 127, 129]
+        }
+      };
+
+      // [cite: 131]
+      const handleAdd = () => {
+        if (user.name === "" || user.username === "") { // [cite: 133]
+          alert("Vui lòng nhập Name và Username!"); // [cite: 135]
+          return; // [cite: 136]
+        }
+        onAdd(user); // [cite: 137]
+        setUser(initialUserState); // [cite: 138, 139, 140, 141, 142]
+        setAdding(false); // [cite: 143]
+      };
+      
+      const handleCancel = () => {
+        setUser(initialUserState);
+        setAdding(false);
+      }
+
+      return (
+        <div>
+          <button className="btn-add" onClick={() => setAdding(true)}>Thêm Người Dùng Mới</button>
+          
+          {adding && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Thêm người dùng mới</h3>
+                
+                <div className="form-group">
+                  <label htmlFor="name">Name *</label>
+                  <input type="text" id="name" value={user.name} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="username">Username *</label>
+                  <input type="text" id="username" value={user.username} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input type="email" id="email" value={user.email} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="city">City</label>
+                  <input type="text" id="city" value={user.address.city} onChange={handleChange} />
+                </div>
+                
+                <div className="modal-actions">
+                  <button className="btn-save" onClick={handleAdd}>Thêm</button>
+                  <button className="btn-cancel" onClick={handleCancel}>Hủy</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // ===================================
+    // COMPONENT EDITMODAL (Logic Bước 6)
+    // ===================================
+    function EditModal({ user, onSave, onCancel }) {
+      // Dùng state riêng cho form, được khởi tạo từ prop 'user'
+      // Phải "sao chép sâu" (deep copy) để tránh sửa dữ liệu gốc [cite: 157]
+      const [editingUser, setEditingUser] = useState({ ...user, address: { ...user.address } }); // [cite: 162]
+
+      const handleChange = (e) => {
+        const { id, value } = e.target;
+        if (["street", "suite", "city"].includes(id)) {
+          setEditingUser(prevUser => ({
+            ...prevUser,
+            address: { ...prevUser.address, [id]: value }
+          }));
+        } else {
+          setEditingUser(prevUser => ({ ...prevUser, [id]: value }));
+        }
+      };
+
+      const handleSave = () => {
+        onSave(editingUser); // [cite: 165]
+      };
+
+      return (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Sửa người dùng (ID: {editingUser.id})</h3>
+            
+            <div className="form-group">
+              <label htmlFor="name">Name *</label>
+              <input type="text" id="name" value={editingUser.name} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label htmlFor="username">Username *</label>
+              <input type="text" id="username" value={editingUser.username} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input type="email" id="email" value={editingUser.email} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label htmlFor="city">City</label>
+              <input type="text" id="city" value={editingUser.address.city} onChange={handleChange} />
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn-save" onClick={handleSave}>Lưu</button>
+              <button className="btn-cancel" onClick={onCancel}>Hủy</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ===================================
+    // COMPONENT RESULTTABLE (Bước 4, 5, 6, 7)
+    // ===================================
+    function ResultTable({ keyword, user, onAdded }) {
+      // [cite: 70]
+      const [users, setUsers] = useState([]); // [cite: 71]
+      const [loading, setLoading] = useState(true); // [cite: 72]
+      const [editing, setEditing] = useState(null); // State cho logic Sửa [cite: 156]
+
+      // Bước 4: Tải dữ liệu 1 lần khi component mount
+      // [cite: 67, 73]
+      useEffect(() => {
+        fetch("https://jsonplaceholder.typicode.com/users") // [cite: 74]
+          .then(res => res.json()) // [cite: 75]
+          .then(data => {
+            setUsers(data); // [cite: 76]
+            setLoading(false); // [cite: 76]
+          });
+      }, []); // [cite: 67, 77]
+
+      // Bước 5: Lắng nghe prop 'user' (người dùng mới) thay đổi
+      // [cite: 111, 146]
+      useEffect(() => {
+        if (user) { // [cite: 147]
+          // Thêm ID giả lập vì API không trả về ID khi thêm
+          const newUserWithId = { ...user, id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1 };
+          setUsers((prev) => [...prev, newUserWithId]); // [cite: 148, 149]
+          onAdded(); // [cite: 152]
+        }
+      }, [user]); // [cite: 111, 153]
+
+      // Bước 7: Hàm Xóa người dùng
+      // [cite: 169, 171]
+      const removeUser = (id) => {
+        if (window.confirm(`Bạn có chắc muốn xóa người dùng ID: ${id}?`)) {
+          // Dùng filter để tạo mảng mới, không chứa user có id trùng [cite: 170]
+          setUsers((prev) => prev.filter((u) => u.id !== id)); // [cite: 174, 178]
+        }
+      };
+      
+      // Bước 6: Hàm kích hoạt Sửa
+      // [cite: 160, 161]
+      const editUser = (user) => {
+        // Sao chép sâu để không ảnh hưởng state gốc [cite: 157, 162]
+        setEditing({ ...user, address: { ...user.address } });
+      };
+
+      // Bước 6: Hàm Lưu sau khi Sửa
+      // [cite: 165, 166]
+      const saveUser = (editedUser) => {
+        // Dùng map để thay thế đối tượng cũ bằng đối tượng đã sửa [cite: 158]
+        setUsers(prev => prev.map(u => (u.id === editedUser.id ? editedUser : u))); // [cite: 167]
+        setEditing(null); // Đóng modal [cite: 167]
+      };
+
+      // Bước 4: Lọc danh sách theo keyword
+      // [cite: 68, 78, 79, 80, 81, 82, 83]
+      const filteredUsers = users.filter(
+        (u) =>
+          u.name.toLowerCase().includes(keyword.toLowerCase()) ||
+          u.username.toLowerCase().includes(keyword.toLowerCase())
+      );
+
+      if (loading) {
+        return <div>Loading...</div>;
+      }
+
+      return (
+        <div>
+          {/* Bước 6: Hiển thị Modal Sửa nếu 'editing' có giá trị */}
+          {editing && (
+            <EditModal 
+              user={editing} 
+              onSave={saveUser} 
+              onCancel={() => setEditing(null)} // [cite: 167]
+            />
+          )}
+
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            {/* Bước 4: Hiển thị dữ liệu bằng map */}
+            {/* [cite: 85, 86, 97, 98] */}
+            <tbody>
+              {filteredUsers.map((u) => (
+                <tr key={u.id}>
+                  {/* [cite: 87] */}
+                  <td>{u.id}</td> {/* [cite: 88] */}
+                  <td>{u.name}</td> {/* [cite: 89] */}
+                  <td>{u.username}</td> {/* [cite: 90] */}
+                  <td>{u.email}</td> {/* [cite: 91] */}
+                  <td>{u.address.city}</td> {/* [cite: 92] */}
+                  <td>
+                    {/* [cite: 93, 94, 95] */}
+                    <button className="btn-edit" onClick={() => editUser(u)}>Sửa</button> {/* [cite: 99] */}
+                    <button className="btn-delete" onClick={() => removeUser(u.id)}>Xóa</button> {/* [cite: 100] */}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ===================================
+    // COMPONENT APP (Bước 2)
+    // ===================================
+    function App() {
+      // [cite: 19, 31]
+      // State tập trung: kw (từ khóa) và newUser (người dùng mới)
+      const [kw, setKeyword] = useState(""); // [cite: 32]
+      const [newUser, setNewUser] = useState(null); // [cite: 33]
+
+      return (
+        <div>
+          {/* [cite: 21, 34, 35] */}
+          <h1>Quản lý người dùng</h1>
+          
+          <div className="controls">
+            {/* Truyền hàm setKeyword xuống SearchForm [cite: 29, 36, 50] */}
+            <SearchForm onChangeValue={setKeyword} />
+            
+            {/* Truyền hàm setNewUser xuống AddUser [cite: 29, 37, 104] */}
+            <AddUser onAdd={setNewUser} />
+          </div>
+
+          {/* Truyền kw và newUser xuống ResultTable [cite: 28, 38, 40, 41] */}
+          <ResultTable
+            keyword={kw}
+            user={newUser}
+            onAdded={() => setNewUser(null)} // [cite: 39, 42, 43]
+          />
+          {/* [cite: 44, 45, 46] */}
+        </div>
+      );
+    }
+
+    // ===================================
+    // RENDER APP (Bước 1)
+    // ===================================
+    const root = ReactDOM.createRoot(document.getElementById('root')); // [cite: 22]
+    root.render(<App />); // [cite: 22]
+
+  </script>
+</body>
+</html>
